@@ -6,10 +6,18 @@ import csv
 def user_face():
     pass
 
-url = 'https://novosibirsk.hh.ru/search/vacancy?area=1&st=searchVacancy&text=Python+junior&from=suggest_post'
+base_url = 'https://novosibirsk.hh.ru/search/vacancy?area=1&st=searchVacancy&text=Python+junior&from=suggest_post&page=0'
 headers = {'accept':'*/*','user-agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) snap Chromium/80.0.3987.87 Chrome/80.0.3987.87 Safari/537.36'}
 def get_url(*args, **kwargs):
-    pass
+    base_url = 'https://novosibirsk.hh.ru/search/vacancy?area=1&st=searchVacancy&text=Python+junior&from=suggest_post'
+    urls = []
+    urls.append(base_url)
+    for i in range(3):
+        url = f'https://novosibirsk.hh.ru/search/vacancy?area=1&st=searchVacancy&text=Python+junior&from=suggest_post&page={i}'
+        if url not in urls:
+            urls.append(url)
+    return urls
+
 
 def get_html(*args, **kwargs):
     session = requests.Session()
@@ -35,14 +43,19 @@ def get_page_data(html):
             linck = chip.find(attrs={'data-qa': 'vacancy-serp__vacancy-title'}).get('href')
         except:
             linck = ''
-        data = {'name': name, 'linck': linck}
+        try:
+            date = chip.find("span", {"class": "vacancy-serp-item__publication-date"}).text
+        except:
+            date = ''
+        data = {'name': name, 'linck': linck, 'date':date}
         writer(data)
 
 def writer(data):
     with open('resul', 'a') as f:
         writer = csv.writer(f)
-        writer.writerow((data['name'],data['linck']))
-
+        writer.writerow((data['name'],data['linck'],data['date']))
+for url in get_url():
+    print(url)
 def main(*args, **kwargs):
 
     get_page_data(get_html(url, headers))
@@ -77,4 +90,5 @@ def main(*args, **kwargs):
 
 
 if __name__ == '__main__':
-    main()
+    for url in get_url():
+        main()
